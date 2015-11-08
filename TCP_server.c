@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
 		
 		close(clnt_sock);
 		fclose(fp);
+		check=0;
 
 	}
 	
