@@ -6,8 +6,16 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 
-#define BUF_SIZE 1024
+#define BUF_SIZE 256
+
+typedef struct Files{
+	char name[255];
+	unsigned int byte;
+}Files;
+
 void error_handling(char *message);
+
+int recvn(int ,char * , int, int);
 
 int main(int argc, char *argv[])
 {
@@ -16,7 +24,9 @@ int main(int argc, char *argv[])
 	char file_name[BUF_SIZE];
 	int str_len, i=0;
 	int fd,check=0;
+	int retval,count;
 	FILE *fp;
+	Files files;
 
 	struct sockaddr_in serv_adr;
 	struct sockaddr_in clnt_adr;
@@ -52,41 +62,43 @@ int main(int argc, char *argv[])
 			error_handling("accept() error");
 		else
 			printf("Connected client %d \n", i++);
-	
-		while((str_len=recv(clnt_sock, message, BUF_SIZE,0))!=0){
+		
+		
+			retval = recvn(clnt_sock,(char *)&files,sizeof(files),0);
+			if(retval==-1)
+			error_handling("file name read error");
+		
+			fp = fopen(files.name,"wb");
 
-			if(str_len==-1)
-				continue;
+			count = files.byte / BUF_SIZE;
 
-			if(check==0)
-			{
-				message[str_len-1] = 0;
-
-				fd = open(message,O_RDWR | O_CREAT,0777);
-
-				if(fd==-1)
-				     error_handling("file open error");
-
-				fp = fdopen(fd,"w");
-
-				check=1;
-
-				continue;
-			}
-
+		while(count)
+		{
+			retval = recvn(clnt_sock,message,BUF_SIZE,0);
+			if(retval == -1)
+			error_handling("error");
 			
-			fputs(message,fp);
+			fwrite(message,1, BUF_SIZE,fp);
 
+			count--;
 		}
 		
+		count = files.byte - ((files.byte/BUF_SIZE)*BUF_SIZE);
+		
+
+		retval = recvn(clnt_sock,message,BUF_SIZE,0);
+		if(retval==-1)
+			error_handling("error");
+		
+		fwrite(message,1,count,fp);
+
+		fputs("file download is done\n",stdout);
 		
 		close(clnt_sock);
 		fclose(fp);
-		check=0;
 
 	}
 	
-
 	close(serv_sock);
 
 	return 0;
@@ -98,4 +110,28 @@ void error_handling(char *message)
 	fputs(message, stderr);
 	fputc('\n', stderr);
 	exit(1);
+}
+
+int recvn(int s, char *buf, int len, int flags)
+{
+	int received;
+	char *ptr = buf;
+	int left = len;
+
+	while (left > 0){
+
+	received = recv(s,ptr,left,flags);
+	if(received == -1)
+		error_handling("error");
+
+	else if(received==0)
+		break;
+	
+	left -= received;
+	ptr += received;
+
+	}
+
+	return (len - left);
+
 }
