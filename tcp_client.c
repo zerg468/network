@@ -5,16 +5,24 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define BUF_SIZE 512
+#define BUF_SIZE 128
 void error_handling(char *message);
+
+typedef struct Files{
+
+	char name[255];
+	unsigned int byte;
+}Files;
 
 int main(int argc, char *argv[])
 {
 	int sock;
 	char message[BUF_SIZE];
-	int str_len;
+	char file_name[BUF_SIZE];
+	int retval,per,count;
 	FILE *fp;
 	struct sockaddr_in serv_adr;
+	Files files;
 
 	if(argc!=3) {
 		printf("Usage : %s <IP> <port>\n", argv[0]);
@@ -37,18 +45,45 @@ int main(int argc, char *argv[])
 		puts("Connected server");
 	
 	fputs("Input file_name: ", stdout);
-	fgets(message, BUF_SIZE, stdin);
-	send(sock,message,strlen(message),0);
-	
-	fp = fopen("test.txt","r");
-	
-	while(!feof(fp)) 
+	scanf("%s",files.name);
+
+        fp = fopen(files.name,"rb");
+
+        if(fp==NULL)
+                error_handling("file open is error!");
+
+        fseek(fp,0L,SEEK_END);
+        files.byte = ftell(fp);
+        fseek(fp,0L,SEEK_SET);
+
+	retval =  send(sock,(char*)&files,sizeof(files),0);
+	if(retval==-1)
+		 error_handling("file name send error!");
+
+	per = files.byte / BUF_SIZE;
+	count = per;
+		
+
+	while(count) 
 	{
 
-		fgets(message,BUF_SIZE,fp);
-		send(sock,message,strlen(message),0);
+		fread(message,1,BUF_SIZE,fp);
+		retval = send(sock,message,BUF_SIZE,0);
+		if(retval==-1)
+			error_handling("file uploading error");
+		
+
+		count--;
+	
 	}
 	
+	count = files.byte - (per*BUF_SIZE);
+	fread(message,1,count,fp);
+	
+	retval = send(sock,message,BUF_SIZE,0);
+                if(retval==-1)
+                        error_handling("file uploading error");
+
 	printf("file upload is done\n");
 	fclose(fp);
 	close(sock);
@@ -61,3 +96,4 @@ void error_handling(char *message)
 	fputc('\n', stderr);
 	exit(1);
 }
+
