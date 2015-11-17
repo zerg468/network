@@ -1,0 +1,27 @@
+HW1
+TCP로 간단한 socket programming 만들기
+이 프로그램을 하면서 특히 주의하여야 사항을 기술하고, 그 부분을 어떻게 구현하였는가를 기술하여야 한다.
+TCP는 message boundary를 유지하기 않기 때문에, 메시지 단위 별로 보장되지 않는다. 따라서 파일 이름과 파일 내용을 구분하기 위해서는 추가로 생각해야 할 부분이 있었다. 이 부분을 해결하기 위해서 먼저 파일 이름과 파일 사이즈를 받았다. 정확한 길이를 알기 때문에, 이 파일 사이즈를 server의 buffer size에 따라 나누어서 segments를 받게 하여서 이 문제를 해결하였다.
+
+TCP가 byte-stream protocol이란 의미가 socket programming 을 할 때 어떠한 점을 고려하여야 한다는 의미인가? 그리고UDP와 비교하였을 때 어떠한 점에서 차이가 있는가? (programming HW2와 비교 설명)
+UDP는 message boundary 를 유지하기 때문에, 메시지 단위 별로 보장된다. 하지만 TCP 는 byte-stream protocol 이므로 byte 단위로 파일을 보낸다. 이러한 이유가 error를 recovery 하기 위함이다. 이러한 특징으로 인해서 segment의 데이터가 경계가 없는 byte 열로 취급되기 때문에 socket programming 할 때 하나의 메시지 크기를 어떻게 판단할 것인가를 잘 고려해야 한다.
+
+
+HW2
+이 프로그램을 하면서 특히 주의하여야 사항을 기술하고, 그 부분을 어떻게 구현하였는가를 기술하여야 한다.
+UDP는 connectionless protocol 이며 error recovery를 하지 않기 때문에, 파일 전송을 완료한 후에 종료를 정확히 하는 방법에 대해서 주의 깊게 생각하였다.
+
+UDP에서는 message boundary를 유지한다는 의미를 보이기 위한 실험 방법을 디자인하고 이에 대한 결과를 기술하시오.
+
+
+주의사항
+그리고 server와 client에서 read/write 시에 최대 버퍼의 크기를 동일하게 하지 않습니다.
+ TCP와 UDP에서 read buffer size가 write의 buffer size 보다 작을 때 어떤 현상이 발생하는
+지 확인합니다. 이것은 질문 사항과도 관계가 있습니다.
+
+프로그램 시현 전 꼭 확인하고, 시현 시 보여줄 내용
+UDP에서는 종료 확인을 어떻게 하였는지 확인합니다. UDP는 connectionless이기 때문에 종료 확
+인을 할 수가 없습니다. TCP의 경우와 비교하기 바랍니다. TCP는 어떻게 종료를 확인하나요?
+TCP에서는 close 함수를 통해 connection을 끊을 수 있다. Close 함수를 사용한 이후에 remote side에서 recv() 함수를 통해 data를 요청하면 0 값을 return 한다. 그리고 remote side에서 send() 함수를 통해 data를 전송하려고 한다면, SIGPIPE 라는 PIPE ERROR signal을 받게 될 것이고, remote side 또한 -1 값을 return 받게 될 것이다.
+
+UDP에서 전송 상의 에러 발생 시에 어떻게 동작하는 가를 확인하십시오.
