@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define BUFSIZE 1024
+#define NAMESIZE 256
 
 void error_handling(char* err_msg);
 
@@ -14,7 +15,7 @@ int main(int argc, char **argv)
 {
 	int sockfd;
 	char message[BUFSIZE + 1];
-	char filename[256];
+	char filename[NAMESIZE];
 	int str_len, str_total = 0, total_bytes = 0;
 	struct sockaddr_in server_addr;
 	FILE *fp = NULL;
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
 		error_handling("File Input Error");
 
 	//SEND FILE NAME
-	if (send(sockfd, filename, 256, 0) < 0)				//Sending fixed sized file name
+	if (send(sockfd, filename, NAMESIZE, 0) < 0)				//Sending fixed sized file name
 		error_handling("File Name Send Error");
 
 	//SEND FILE SIZE
