@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define BUFSIZE 2048
+#define NAMESIZE 256
 
 int recvn(int socket, char *buf, int len, int flags);
 void error_handling(char* err_msg);
@@ -15,7 +16,7 @@ int main(int argc, char **argv)
 {
 	int server_sockfd, client_sockfd;
 	char message[BUFSIZE + 1];
-	char filename[256];
+	char filename[NAMESIZE];
 	int str_len, str, total_bytes, rcv_total = 0;
 	FILE *fp = NULL;
 
@@ -62,7 +63,7 @@ int main(int argc, char **argv)
 		else printf("Connectd client\n");
 
 		//FILE NAME RECEIVE
-		str_len = recvn(client_sockfd, filename, 256, 0);							//Receiving fixed-sized file name
+		str_len = recvn(client_sockfd, filename, NAMESIZE, 0);							//Receiving fixed-sized file name
 		if (str_len < 0)
 			error_handling("Receive filename error");
 
