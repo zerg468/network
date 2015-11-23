@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	FILE *fp = NULL;
 
 	//ARGUMENT CHECK
-	if (argc < 2)
+	if (argc < 3)
 	{
 		fprintf(stderr, "Usage: %s [IP] [port]\n", argv[0]);
 		exit(1);
