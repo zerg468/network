@@ -9,7 +9,7 @@
 #define BUFSIZE 2048
 #define NAMESIZE 256
 
-int recvn(int socket, char *buf, int len, int flags);
+int receive(int socket, char *buffer, int length);
 void error_handling(char* err_msg);
 
 int main(int argc, char **argv)
@@ -63,12 +63,12 @@ int main(int argc, char **argv)
 		else printf("Connectd client\n");
 
 		//FILE NAME RECEIVE
-		str_len = recvn(client_sockfd, filename, NAMESIZE, 0);							//Receiving fixed-sized file name
+		str_len = receive(client_sockfd, filename, NAMESIZE);					//Receiving fixed-sized file name
 		if (str_len < 0)
 			error_handling("Receive filename error");
 
 		//FILE SIZE RECEIVE
-		str_len = recvn(client_sockfd, (char *)&total_bytes, sizeof(total_bytes), 0);		//Receiving File total size
+		str_len = receive(client_sockfd, (char *)&total_bytes, sizeof(total_bytes));		//Receiving File total size
 		if (str_len < 0)
 			error_handling("Receive file size error");
 		
@@ -80,10 +80,9 @@ int main(int argc, char **argv)
 		//FILE DATA RECEIVE
 		while (1)
 		{
-			str_len = recvn(client_sockfd, message, BUFSIZE, 0);
+			str_len = receive(client_sockfd, message, BUFSIZE);
 			if (str_len < 0)																//Receiving error
 				error_handling("Receive file data error");
-
 			else if (str_len == 0) break;													//All data received
 			else																			//Data read -> write to a file
 			{
@@ -107,24 +106,23 @@ int main(int argc, char **argv)
 }
 
 //Receiving fuction to get full data the client sent
-int recvn(int socket, char *buf, int length, int flags)
+int receive(int socket, char *buffer, int length)
 {
-	int received;
-	char *ptr = buf;	//buffer full
-	int left = length;		//left buffer size
+	int str_len;
+	char *ptr = buffer;		//buffer full
+	int remain = length;		//remain buffer size
 
-	while (left > 0)
+	while (remain > 0)
 	{
-		received = recv(socket, ptr, left, flags);
-		if (received < 0)
+		str_len = recv(socket, ptr, remain, 0);
+		if (str_len < 0)
 			error_handling("Socket Error");
-		
-		else if (received == 0) break;
+		else if (str_len == 0) break;
 
-		left -= received;
-		ptr += received;
+		remain -= received;
+		ptr += str_len;
 	}
-	return (length - left);
+	return (length - remain);
 }
 
 void error_handling(char* err_msg)
