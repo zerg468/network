@@ -9,31 +9,23 @@
 
 #define BUF_SIZE  256
 
-struct sockaddr_in servaddr;
-int addrlen = sizeof(servaddr);
-
 typedef struct Files{
-
-	char name[255];
 	unsigned int byte;
+	int check;
+	char name[BUF_SIZE];
 
 }Files;
 
-void sendMessage(int s, char* buf) {
-    if((sendto(s, buf, strlen(buf), 0, (struct sockaddr *)&servaddr, addrlen)) < 0) {
-        perror("sendto fail");
-        exit(0);
-    }
-}
-
 int main(int argc, char *argv[]) {
     int sock; //socket
-    char message[BUF_SIZE];
-    char file_name[255];
     FILE *fp; 
-    int len,per,count;
+    int len,count=0;
+    int num_read=0;
+    struct sockaddr_in servaddr;
+    int addrlen = sizeof(servaddr);
     Files files;
-
+    int total_size=0;
+	
     if(argc!=3){
 	printf("Usage : %s <IP> <PORT> \n",argv[0]);
 	exit(1);
@@ -54,7 +46,7 @@ int main(int argc, char *argv[]) {
         fputs("Input file_name: ", stdout);
 	scanf("%s",files.name);
 
-        fp = fopen(files.name,"rb");
+	fp = fopen(files.name,"rb");
 
         if(fp==NULL)
         {
@@ -65,56 +57,57 @@ int main(int argc, char *argv[]) {
 	}
 
 	fseek(fp,0L,SEEK_END);
-	files.byte = ftell(fp);
+	total_size = ftell(fp);
 	fseek(fp,0L,SEEK_SET);
-	
+	files.byte = total_size;
+	files.check = 1;
 
-	len = sendto(sock,(char*)&files,sizeof(files),0,(struct sockaddr *)&servaddr, addrlen);
+	len = sendto(sock,(char*)&files, sizeof(files),0,(struct sockaddr*)&servaddr,addrlen);
+
 	
 	if(len<0)
 	{
-		perror("error");
+		perror("file sending is error");
 		exit(0);
 
+	}
+
+	
+	while(1){
+
+		files.check = 0;
+	
+		num_read = fread(files.name,1,BUF_SIZE,fp);
+		files.byte = num_read;
+		count += files.byte;
+
+		if(num_read<0)
+		{
+			perror("file read is error");
+			exit(0);
 		}
-
-	//sendMessage(sock,file_name);
-	
-	per = files.byte / BUF_SIZE;
-	count = per;
-	
-	while(count){
-
-		fread(message,1,BUF_SIZE,fp);
-		//sendMessage(sock,message);
+	len = sendto(sock,(char*)&files,sizeof(files),0,(struct sockaddr *)&servaddr,addrlen);
 		
-		len = sendto(sock,message,BUF_SIZE,0,(struct sockaddr *)&servaddr,addrlen);
 		if(len<0)
 		{
-			perror("error");
+			
+			perror("file sending is error");
 			exit(0);
-			}
-		
-		count--;
+		}
+
+			
+		else if(files.byte ==0 && count == total_size)
+			break;
+
 	}
-		
-	count = files.byte - (per*BUF_SIZE);
-	fread(message,1, count,fp);
-
-	len = sendto(sock,message,BUF_SIZE,0,(struct sockaddr*)&servaddr,addrlen);
-
-	if(len==-1)
-	{
-		perror("error");
-		exit(0);
-	}
-
-	printf("file upload is done");
+	
+	
+	if(len<0)
+		perror("file sending is error");
+	
+	printf("file upload is done, %d bytes\n",total_size);
 
 	fclose(fp);
-
-	//message[0] = '\0';
-	//sendMessage(sock,"end of file");
 	close(sock);
 
 	return 0;
