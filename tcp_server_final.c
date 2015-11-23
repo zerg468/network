@@ -7,7 +7,6 @@
 #include <string.h>
 
 #define BUFSIZE 2048
-#define NAMESIZE 256
 
 int receive(int socket, char *buffer, int length);
 void error_handling(char* err_msg);
@@ -16,7 +15,7 @@ int main(int argc, char **argv)
 {
 	int server_sockfd, client_sockfd;
 	char message[BUFSIZE + 1];
-	char filename[NAMESIZE];
+	char filename[256];
 	int str_len, str, total_bytes, rcv_total = 0;
 	FILE *fp = NULL;
 
@@ -63,7 +62,7 @@ int main(int argc, char **argv)
 		else printf("Connectd client\n");
 
 		//FILE NAME RECEIVE
-		str_len = receive(client_sockfd, filename, NAMESIZE);					//Receiving fixed-sized file name
+		str_len = receive(client_sockfd, filename, 256);							//Receiving fixed-sized file name
 		if (str_len < 0)
 			error_handling("Receive filename error");
 
@@ -83,6 +82,7 @@ int main(int argc, char **argv)
 			str_len = receive(client_sockfd, message, BUFSIZE);
 			if (str_len < 0)																//Receiving error
 				error_handling("Receive file data error");
+
 			else if (str_len == 0) break;													//All data received
 			else																			//Data read -> write to a file
 			{
@@ -110,16 +110,17 @@ int receive(int socket, char *buffer, int length)
 {
 	int str_len;
 	char *ptr = buffer;		//buffer full
-	int remain = length;		//remain buffer size
+	int remain = length;		//left buffer size
 
 	while (remain > 0)
 	{
 		str_len = recv(socket, ptr, remain, 0);
 		if (str_len < 0)
 			error_handling("Socket Error");
+		
 		else if (str_len == 0) break;
 
-		remain -= received;
+		remain -= str_len;
 		ptr += str_len;
 	}
 	return (length - remain);
