@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
 	int ACK=0;
 	int one=1,zero=0;
 	int total_size=0;
-	int send_size = 0;
 
 	
 	if(argc!=2)
@@ -180,7 +179,6 @@ int main(int argc, char *argv[])
 	ACK=0;
 	total_size=0;
 	count = 0;
-	send_size = 0;
 	
 	}
 	
