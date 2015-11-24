@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#define BUF_SIZE  256
+#define BUF_SIZE  1024
 
 typedef struct Files{
 	unsigned int byte;
