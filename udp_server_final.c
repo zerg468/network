@@ -67,7 +67,8 @@ int main(int argc, char *argv[])
 
 			if(errno == EWOULDBLOCK)
 			{
-				fp=fopen("test.txt","wb");
+				printf("server didn't receive file name\n");
+				continue;
 			}
 			
 			else
