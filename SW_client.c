@@ -9,7 +9,7 @@
 #include <errno.h>
 
 
-#define BUF_SIZE  512
+#define BUF_SIZE  1024
 
 typedef struct Files{
 	unsigned int byte;
